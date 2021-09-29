@@ -1,10 +1,22 @@
 import { SignUpController } from './signup-controller'
 import { InvalidParamError, MissingParamError, ServerError } from '../../errors'
-import { EmailValidator } from './signup-controller-protocols'
+import { AddAccount, AccountModel, AddAccountModel, EmailValidator } from './signup-controller-protocols'
 
 interface StubTypes{
   sut: SignUpController
   emailValidatorStub: EmailValidator
+  addAccountStub: AddAccount
+}
+
+const makeSut = (): StubTypes => {
+  const emailValidatorStub = makeEmailValidator()
+  const addAccountStub = makeAddAccount()
+  const sut = new SignUpController(emailValidatorStub, addAccountStub)
+  return {
+    sut,
+    emailValidatorStub,
+    addAccountStub
+  }
 }
 
 const makeEmailValidator = (): EmailValidator => {
@@ -16,13 +28,19 @@ const makeEmailValidator = (): EmailValidator => {
   return new EmailValidatorStub()
 }
 
-const makeSut = (): StubTypes => {
-  const emailValidatorStub = makeEmailValidator()
-  const sut = new SignUpController(emailValidatorStub)
-  return {
-    sut,
-    emailValidatorStub
+const makeAddAccount = (): AddAccount => {
+  class AddAccountStub {
+    add (account: AddAccountModel): AccountModel {
+      const fakeAccount = {
+        id: 'valid_id',
+        name: 'valid_name',
+        email: 'valid_email@email.com',
+        password: 'valid_password'
+      }
+      return fakeAccount
+    }
   }
+  return new AddAccountStub()
 }
 
 describe('SignUp Controller', () => {
@@ -139,6 +157,27 @@ describe('SignUp Controller', () => {
 
     sut.handle(httpRequest)
     expect(isValidSpy).toHaveBeenLastCalledWith('any_email@mail.com')
+  })
+
+  test('Should call AddAccount with correct values', () => {
+    const { sut, addAccountStub } = makeSut()
+    const addSpy = jest.spyOn(addAccountStub, 'add')
+
+    const httpRequest = {
+      body: {
+        name: 'any_name',
+        email: 'any_email@mail.com',
+        password: 'any_password',
+        passwordConfirmation: 'any_password'
+      }
+    }
+
+    sut.handle(httpRequest)
+    expect(addSpy).toHaveBeenCalledWith({
+      name: 'any_name',
+      email: 'any_email@mail.com',
+      password: 'any_password'
+    })
   })
 
   test('Should return 500 if EmailValidator throws', () => {
