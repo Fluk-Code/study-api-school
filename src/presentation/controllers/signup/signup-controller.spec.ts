@@ -1,8 +1,8 @@
-import { SignUpController } from '../controllers/signup-controller'
-import { InvalidParamError } from '../errors/invalid-param-error'
-import { MissingParamError } from '../errors/missing-param-error'
-import { ServerError } from '../errors/server-error'
-import { EmailValidator } from '../protocols'
+import { SignUpController } from './signup-controller'
+import { InvalidParamError } from '../../errors/invalid-param-error'
+import { MissingParamError } from '../../errors/missing-param-error'
+import { ServerError } from '../../errors/server-error'
+import { EmailValidator } from './signup-controller-protocols'
 
 interface StubTypes{
   sut: SignUpController
